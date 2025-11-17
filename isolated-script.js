@@ -1,30 +1,67 @@
 // This script runs inside the isolated VM
 // It has limited access to Node.js APIs
+// Each socket message creates a fresh VM context
 
-// Log received message
-log('Script started in isolated VM');
-log('Received message from main app:', messageFromMain);
+log('=== Isolated VM Started ===');
+log('Socket Data:', JSON.stringify(socketData, null, 2));
 
-// Process the message
-const processed = messageFromMain.toUpperCase();
+// Extract data from socket message
+const messageType = socketData.message?.messageType;
+const messageData = socketData.message?.data;
+const fromId = socketData.from;
+const room = socketData.room;
+const timestamp = socketData.timestamp;
 
-// Send messages back to main app
-sendToMain('Processing your message...');
-sendToMain('Message received: ' + messageFromMain);
-sendToMain('Processed result: ' + processed);
+sendToMain('VM initialized for messageType: ' + messageType);
 
-// Do some computation
-let sum = 0;
-for (let i = 1; i <= 10; i++) {
-  sum += i;
+// Check if this is rawdata
+if (messageType === 'rawdata') {
+  log('Processing rawdata...');
+
+  // Process the raw data
+  let processedData = null;
+
+  if (typeof messageData === 'string') {
+    processedData = messageData.toUpperCase();
+    sendToMain('Processed string data: ' + processedData);
+  } else if (typeof messageData === 'object') {
+    processedData = JSON.stringify(messageData);
+    sendToMain('Processed object data: ' + processedData);
+  } else {
+    processedData = String(messageData);
+    sendToMain('Converted to string: ' + processedData);
+  }
+
+  // Do some computation as example
+  const dataLength = processedData ? processedData.length : 0;
+  const wordCount = processedData ? processedData.split(' ').length : 0;
+
+  sendToMain('Data length: ' + dataLength);
+  sendToMain('Word count: ' + wordCount);
+
+  // Set the final result
+  result = {
+    messageType: messageType,
+    from: fromId,
+    room: room,
+    originalData: messageData,
+    processedData: processedData,
+    stats: {
+      length: dataLength,
+      wordCount: wordCount
+    },
+    processedAt: Date.now(),
+    receivedAt: timestamp
+  };
+
+  log('Result prepared:', JSON.stringify(result, null, 2));
+} else {
+  log('Unsupported messageType: ' + messageType);
+  result = {
+    error: 'Unsupported messageType',
+    messageType: messageType
+  };
 }
 
-sendToMain('Computed sum 1-10: ' + sum);
-
-// Set the final result
-result = {
-  originalMessage: messageFromMain,
-  processedMessage: processed,
-  computedSum: sum,
-  timestamp: Date.now()
-};
+sendToMain('VM execution completed');
+log('=== Isolated VM Finished ===');
