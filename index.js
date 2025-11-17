@@ -8,7 +8,7 @@ const app = express();
 app.use(express.json());
 
 // Socket.IO Configuration
-const SOCKET_URL = process.env.SOCKET_URL || 'http://localhost:4000';
+const SOCKET_URL = process.env.SOCKET_URL || 'http://localhost:3000';
 const ROOM_NAME = 'bgmi';
 
 // Function to run script in isolated VM
@@ -181,7 +181,7 @@ app.get('/socket-status', (req, res) => {
   });
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3050;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📡 Socket URL: ${SOCKET_URL}`);
